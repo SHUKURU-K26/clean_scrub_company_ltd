@@ -1,0 +1,48 @@
+{
+  "common": {
+    "appName": "Clean & Scrub",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "print": "Imprimer",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "submit": "Soumettre",
+    "loading": "Chargement...",
+    "noResults": "Aucun résultat trouvé",
+    "actions": "Actions",
+    "viewDetails": "Voir les détails"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "products": "Produits",
+    "stockIn": "Entrée de stock",
+    "stockOut": "Sortie de stock",
+    "customers": "Clients",
+    "reports": "Rapports",
+    "settings": "Paramètres",
+    "profile": "Profil",
+    "logout": "Déconnexion"
+  },
+  "auth": {
+    "login": "Connexion",
+    "signup": "Inscription",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "rememberMe": "Se souvenir de moi",
+    "dontHaveAccount": "Vous n'avez pas de compte ?",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "verifyOtp": "Vérifier le code",
+    "enterOtpCode": "Entrez le code à 6 chiffres de votre application d'authentification",
+    "recoveryCode": "Utiliser un code de récupération à la place"
+  }
+}

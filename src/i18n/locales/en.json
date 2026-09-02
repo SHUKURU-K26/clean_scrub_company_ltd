@@ -1,0 +1,48 @@
+{
+  "common": {
+    "appName": "Clean & Scrub",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "print": "Print",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "actions": "Actions",
+    "viewDetails": "View details"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "stockIn": "Stock In",
+    "stockOut": "Stock Out",
+    "customers": "Customers",
+    "reports": "Reports",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Log out"
+  },
+  "auth": {
+    "login": "Log in",
+    "signup": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "forgotPassword": "Forgot password?",
+    "rememberMe": "Remember me",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "resetPassword": "Reset password",
+    "verifyOtp": "Verify code",
+    "enterOtpCode": "Enter the 6-digit code from your authenticator app",
+    "recoveryCode": "Use a recovery code instead"
+  }
+}

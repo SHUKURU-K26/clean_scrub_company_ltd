@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+/* Enables class-based dark mode: toggling `dark` on <html> switches theme */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-sans: "Inter", sans-serif;
+
+  /* Navy — brand primary (from logo) */
+  --color-navy-50: #EEF3F8;
+  --color-navy-100: #D3E0ED;
+  --color-navy-200: #A7C1DB;
+  --color-navy-300: #7BA2C8;
+  --color-navy-400: #4F83B6;
+  --color-navy-500: #2E5F92;
+  --color-navy-600: #1B3A5C;
+  --color-navy-700: #0B2545;
+  --color-navy-800: #071A33;
+  --color-navy-900: #041122;
+  --color-navy-950: #020911;
+
+  /* Green — brand primary (from logo) */
+  --color-green-50: #EAFBF1;
+  --color-green-100: #C8F5DA;
+  --color-green-200: #97EBB9;
+  --color-green-300: #5DDB95;
+  --color-green-400: #2FC373;
+  --color-green-500: #16A34A;
+  --color-green-600: #128A3E;
+  --color-green-700: #0E6F32;
+  --color-green-800: #0B5527;
+  --color-green-900: #073A1B;
+
+  /* Mint — accent */
+  --color-mint-300: #6EE7B7;
+  --color-mint-400: #34D399;
+  --color-mint-500: #10B981;
+
+  /* Surfaces */
+  --color-surface-light: #F4F7F6;
+  --color-surface-dark: #0A1628;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply font-sans bg-(--color-surface-light) text-navy-900 transition-colors duration-300;
+  }
+
+  html.dark body {
+    @apply bg-(--color-surface-dark) text-navy-50;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+
+  ::selection {
+    @apply bg-green-400/30 text-navy-900;
+  }
+
+  /* Thin, branded scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-navy-300 dark:bg-navy-600 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-navy-400 dark:bg-navy-500;
+  }
+}
+
+@utility glass {
+  @apply bg-white/70 dark:bg-navy-900/40 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-lg shadow-navy-900/5;
+}
+
+@utility glass-strong {
+  @apply bg-white/85 dark:bg-navy-900/60 backdrop-blur-2xl border border-white/70 dark:border-white/10 shadow-xl shadow-navy-900/10;
+}
+
+@utility glow-ambient {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+  filter: blur(80px);
+  opacity: 0.35;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-area,
+  #printable-area * {
+    visibility: visible;
+  }
+  #printable-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px;
+  }
+}

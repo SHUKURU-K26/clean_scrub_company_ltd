@@ -1,0 +1,140 @@
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
+import { UserPlus, Users } from 'lucide-react';
+import Modal from '../ui/Modal';
+import Button from '../ui/Button';
+import FormInput from '../forms/FormInput';
+import FormSelect from '../forms/FormSelect';
+import ProductSelect from '../forms/ProductSelect';
+import CustomerSelect from '../forms/CustomerSelect';
+import { stockOutSchema } from '../../utils/transactionSchemas';
+import { useProductStore } from '../../store/productStore';
+import { useCustomerStore } from '../../store/customerStore';
+import { useTransactionStore } from '../../store/transactionStore';
+import { CLIENT_TYPES } from '../../data/mockData';
+import { cn } from '../../utils/cn';
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+export default function StockOutFormModal({ open, onClose }) {
+  const products = useProductStore((state) => state.products);
+  const getProductById = useProductStore((state) => state.getProductById);
+  const customers = useCustomerStore((state) => state.customers);
+  const addCustomer = useCustomerStore((state) => state.addCustomer);
+  const addStockOut = useTransactionStore((state) => state.addStockOut);
+
+  const [customerMode, setCustomerMode] = useState('existing');
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    setValue,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({ resolver: zodResolver(stockOutSchema) });
+
+  const selectedProductId = watch('productId');
+  const selectedProduct = selectedProductId ? getProductById(selectedProductId) : null;
+
+  useEffect(() => {
+    if (open) {
+      setCustomerMode('existing');
+      reset({
+        productId: '', quantity: '', date: today(),
+        customerMode: 'existing', customerId: '', customerName: '', customerPhone: '', customerType: '',
+      });
+    }
+  }, [open, reset]);
+
+  useEffect(() => {
+    setValue('customerMode', customerMode);
+  }, [customerMode, setValue]);
+
+  const onSubmit = async (data) => {
+    // Business rule: can't record more stock-out than what's actually in stock
+    if (selectedProduct && data.quantity > selectedProduct.quantity) {
+      setError('quantity', { message: `Only ${selectedProduct.quantity} ${selectedProduct.unit} available` });
+      return;
+    }
+
+    try {
+      let customer;
+      if (data.customerMode === 'existing') {
+        customer = customers.find((c) => c.id === data.customerId);
+      } else {
+        customer = await addCustomer({ name: data.customerName, phone: data.customerPhone, type: data.customerType });
+      }
+
+      await addStockOut({ productId: data.productId, quantity: data.quantity, customer, date: data.date });
+      toast.success('Stock out recorded');
+      onClose();
+    } catch (err) {
+      toast.error(err.message || 'Something went wrong');
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Record Stock Out" size="lg">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <ProductSelect label="Product" products={products} error={errors.productId?.message} {...register('productId')} />
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <FormInput label="Quantity" type="number" min="1" error={errors.quantity?.message} {...register('quantity')} />
+            {selectedProduct && (
+              <p className="mt-1.5 text-xs text-navy-400 dark:text-navy-300">
+                {selectedProduct.quantity} {selectedProduct.unit} currently in stock
+              </p>
+            )}
+          </div>
+          <FormInput label="Date" type="date" error={errors.date?.message} {...register('date')} />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-navy-600 dark:text-navy-200 mb-2">Customer</label>
+          <div className="flex gap-2 p-1 rounded-xl glass mb-3 w-fit">
+            <button
+              type="button"
+              onClick={() => setCustomerMode('existing')}
+              className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors', customerMode === 'existing' ? 'bg-green-500 text-white' : 'text-navy-400 dark:text-navy-300')}
+            >
+              <Users className="w-3.5 h-3.5" /> Existing
+            </button>
+            <button
+              type="button"
+              onClick={() => setCustomerMode('new')}
+              className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors', customerMode === 'new' ? 'bg-green-500 text-white' : 'text-navy-400 dark:text-navy-300')}
+            >
+              <UserPlus className="w-3.5 h-3.5" /> New customer
+            </button>
+          </div>
+
+          {customerMode === 'existing' ? (
+            <CustomerSelect customers={customers} error={errors.customerId?.message} {...register('customerId')} />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormInput label="Full name" placeholder="Jane Uwase" error={errors.customerName?.message} {...register('customerName')} />
+              <FormInput label="Phone number" placeholder="0788123456" error={errors.customerPhone?.message} {...register('customerPhone')} />
+              <FormSelect
+                label="Client type"
+                className="sm:col-span-2 capitalize"
+                options={CLIENT_TYPES}
+                error={errors.customerType?.message}
+                {...register('customerType')}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
+          <Button type="submit" loading={isSubmitting} className="flex-1">Record Stock Out</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
