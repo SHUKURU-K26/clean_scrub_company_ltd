@@ -61,15 +61,15 @@ export default function RecoveryCodes() {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleCopyAll} className="flex-1">
+          <Button variant="outline" onClick={handleCopyAll} className="flex-1 cursor-pointer">
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? 'Copied' : 'Copy all'}
           </Button>
-          <Button variant="outline" onClick={handleDownload} className="flex-1">
+          <Button variant="outline" onClick={handleDownload} className="flex-1 cursor-pointer">
             <Download className="w-4 h-4" /> Download
           </Button>
         </div>
 
-        <Button onClick={handleContinue} className="w-full">I've saved these codes — Continue</Button>
+        <Button onClick={handleContinue} className="w-full cursor-pointer">I've saved these codes — Continue</Button>
       </div>
     </AuthLayout>
   );

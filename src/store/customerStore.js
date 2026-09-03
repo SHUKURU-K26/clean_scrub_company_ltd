@@ -26,6 +26,11 @@ export const useCustomerStore = create(
         set((state) => ({ customers: state.customers.filter((c) => c.id !== id) }));
       },
 
+      deleteMultipleCustomers: async (ids) => {
+        await new Promise((r) => setTimeout(r, 500));
+        set((state) => ({ customers: state.customers.filter((c) => !ids.includes(c.id)) }));
+     },
+
       getCustomerById: (id) => get().customers.find((c) => c.id === id),
     }),
     { name: 'css-customers' }

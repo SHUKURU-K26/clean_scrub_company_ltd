@@ -14,9 +14,11 @@ import { SUPPLIERS } from '../../data/mockData';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export default function StockInFormModal({ open, onClose }) {
+export default function StockInFormModal({ open, onClose, transaction }) {
+  const isEdit = !!transaction;
   const products = useProductStore((state) => state.products);
   const addStockIn = useTransactionStore((state) => state.addStockIn);
+  const updateStockIn = useTransactionStore((state) => state.updateStockIn);
 
   const {
     register,
@@ -26,13 +28,24 @@ export default function StockInFormModal({ open, onClose }) {
   } = useForm({ resolver: zodResolver(stockInSchema) });
 
   useEffect(() => {
-    if (open) reset({ productId: '', quantity: '', supplier: '', date: today() });
-  }, [open, reset]);
+    if (open) {
+      reset(
+        isEdit
+          ? { productId: transaction.productId, quantity: transaction.quantity, supplier: transaction.supplier, date: transaction.date.slice(0, 10) }
+          : { productId: '', quantity: '', supplier: '', date: today() }
+      );
+    }
+  }, [open, isEdit, transaction, reset]);
 
   const onSubmit = async (data) => {
     try {
-      await addStockIn(data);
-      toast.success('Stock in recorded');
+      if (isEdit) {
+        await updateStockIn(transaction.id, data);
+        toast.success('Entry updated');
+      } else {
+        await addStockIn(data);
+        toast.success('Stock in recorded');
+      }
       onClose();
     } catch (err) {
       toast.error(err.message || 'Something went wrong');
@@ -40,7 +53,7 @@ export default function StockInFormModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Record Stock In" size="lg">
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit Stock In Entry' : 'Record Stock In'} size="lg">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <ProductSelect label="Product" products={products} error={errors.productId?.message} {...register('productId')} />
 
@@ -52,8 +65,8 @@ export default function StockInFormModal({ open, onClose }) {
         <FormSelect label="Supplier" options={SUPPLIERS} error={errors.supplier?.message} {...register('supplier')} />
 
         <div className="flex gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-          <Button type="submit" loading={isSubmitting} className="flex-1">Record Stock In</Button>
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1 cursor-pointer">Cancel</Button>
+          <Button type="submit" loading={isSubmitting} className="flex-1 cursor-pointer">{isEdit ? 'Save Changes' : 'Record Stock In'}</Button>
         </div>
       </form>
     </Modal>

@@ -18,12 +18,14 @@ import { cn } from '../../utils/cn';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export default function StockOutFormModal({ open, onClose }) {
+export default function StockOutFormModal({ open, onClose, transaction }) {
+  const isEdit = !!transaction;
   const products = useProductStore((state) => state.products);
   const getProductById = useProductStore((state) => state.getProductById);
   const customers = useCustomerStore((state) => state.customers);
   const addCustomer = useCustomerStore((state) => state.addCustomer);
   const addStockOut = useTransactionStore((state) => state.addStockOut);
+  const updateStockOut = useTransactionStore((state) => state.updateStockOut);
 
   const [customerMode, setCustomerMode] = useState('existing');
 
@@ -42,22 +44,40 @@ export default function StockOutFormModal({ open, onClose }) {
 
   useEffect(() => {
     if (open) {
-      setCustomerMode('existing');
-      reset({
-        productId: '', quantity: '', date: today(),
-        customerMode: 'existing', customerId: '', customerName: '', customerPhone: '', customerType: '',
-      });
+      if (isEdit) {
+        const customerStillExists = customers.some((c) => c.id === transaction.customerId);
+        setCustomerMode('existing');
+        reset({
+          productId: transaction.productId,
+          quantity: transaction.quantity,
+          date: transaction.date.slice(0, 10),
+          customerMode: 'existing',
+          customerId: customerStillExists ? transaction.customerId : '',
+          customerName: '', customerPhone: '', customerType: '',
+        });
+      } else {
+        setCustomerMode('existing');
+        reset({
+          productId: '', quantity: '', date: today(),
+          customerMode: 'existing', customerId: '', customerName: '', customerPhone: '', customerType: '',
+        });
+      }
     }
-  }, [open, reset]);
+  }, [open, isEdit, transaction, customers, reset]);
 
   useEffect(() => {
     setValue('customerMode', customerMode);
   }, [customerMode, setValue]);
 
   const onSubmit = async (data) => {
-    // Business rule: can't record more stock-out than what's actually in stock
-    if (selectedProduct && data.quantity > selectedProduct.quantity) {
-      setError('quantity', { message: `Only ${selectedProduct.quantity} ${selectedProduct.unit} available` });
+    // If editing the same product, the original quantity is still "reserved"
+    // against it, so it counts back toward what's available for this edit
+    const available = isEdit && data.productId === transaction.productId
+      ? (selectedProduct?.quantity || 0) + transaction.quantity
+      : (selectedProduct?.quantity || 0);
+
+    if (selectedProduct && data.quantity > available) {
+      setError('quantity', { message: `Only ${available} ${selectedProduct.unit} available` });
       return;
     }
 
@@ -69,8 +89,13 @@ export default function StockOutFormModal({ open, onClose }) {
         customer = await addCustomer({ name: data.customerName, phone: data.customerPhone, type: data.customerType });
       }
 
-      await addStockOut({ productId: data.productId, quantity: data.quantity, customer, date: data.date });
-      toast.success('Stock out recorded');
+      if (isEdit) {
+        await updateStockOut(transaction.id, { productId: data.productId, quantity: data.quantity, customer, date: data.date });
+        toast.success('Entry updated');
+      } else {
+        await addStockOut({ productId: data.productId, quantity: data.quantity, customer, date: data.date });
+        toast.success('Stock out recorded');
+      }
       onClose();
     } catch (err) {
       toast.error(err.message || 'Something went wrong');
@@ -78,7 +103,7 @@ export default function StockOutFormModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Record Stock Out" size="lg">
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit Stock Out Entry' : 'Record Stock Out'} size="lg">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <ProductSelect label="Product" products={products} error={errors.productId?.message} {...register('productId')} />
 
@@ -87,7 +112,7 @@ export default function StockOutFormModal({ open, onClose }) {
             <FormInput label="Quantity" type="number" min="1" error={errors.quantity?.message} {...register('quantity')} />
             {selectedProduct && (
               <p className="mt-1.5 text-xs text-navy-400 dark:text-navy-300">
-                {selectedProduct.quantity} {selectedProduct.unit} currently in stock
+                {isEdit && selectedProductId === transaction.productId ? selectedProduct.quantity + transaction.quantity : selectedProduct.quantity} {selectedProduct.unit} currently available
               </p>
             )}
           </div>
@@ -131,8 +156,8 @@ export default function StockOutFormModal({ open, onClose }) {
         </div>
 
         <div className="flex gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-          <Button type="submit" loading={isSubmitting} className="flex-1">Record Stock Out</Button>
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1 cursor-pointer">Cancel</Button>
+          <Button type="submit" loading={isSubmitting} className="flex-1 cursor-pointer">{isEdit ? 'Save Changes' : 'Record Stock Out'}</Button>
         </div>
       </form>
     </Modal>

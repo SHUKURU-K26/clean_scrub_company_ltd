@@ -33,8 +33,8 @@ export default function ProductDetailModal({ open, onClose, product, onEdit, onD
       size="md"
       footer={
         <>
-          <Button variant="outline" onClick={() => onEdit(product)}><Pencil className="w-4 h-4" /> Edit</Button>
-          <Button variant="danger" onClick={() => onDelete(product)}><Trash2 className="w-4 h-4" /> Delete</Button>
+          <Button variant="outline" className="cursor-pointer" onClick={() => onEdit(product)}><Pencil className="w-4 h-4 " /> Edit</Button>
+          <Button variant="danger" className="cursor-pointer" onClick={() => onDelete(product)}><Trash2 className="w-4 h-4 " /> Delete</Button>
         </>
       }
     >
@@ -58,9 +58,9 @@ export default function ProductDetailModal({ open, onClose, product, onEdit, onD
       </div>
 
       <div className="flex gap-2 mt-5 pt-4 border-t border-navy-100/50 dark:border-white/5">
-        <Button variant="outline" onClick={handlePrint} className="flex-1"><Printer className="w-4 h-4" /> Print</Button>
-        <Button variant="outline" onClick={handlePdf} className="flex-1"><FileDown className="w-4 h-4" /> PDF</Button>
-        <Button variant="outline" onClick={handleExcel} className="flex-1"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
+        <Button variant="outline" onClick={handlePrint} className="flex-1 cursor-pointer"><Printer className="w-4 h-4" /> Print</Button>
+        <Button variant="outline" onClick={handlePdf} className="flex-1 cursor-pointer"><FileDown className="w-4 h-4" /> PDF</Button>
+        <Button variant="outline" onClick={handleExcel} className="flex-1 cursor-pointer"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
       </div>
     </Modal>
   );

@@ -13,6 +13,8 @@ export const useAuthStore = create(
 
       completeLogin: (user) =>
         set({ user, isAuthenticated: true, isOtpVerified: true, pendingUser: null }),
+      
+      updateUser: (updates) => set((state) => ({ user: { ...state.user, ...updates } })),
 
       logout: () =>
         set({ user: null, isAuthenticated: false, isOtpVerified: false, pendingUser: null }),

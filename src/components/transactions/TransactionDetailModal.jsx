@@ -1,4 +1,4 @@
-import { Printer, FileDown, FileSpreadsheet, Trash2, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { Printer, FileDown, FileSpreadsheet, Pencil, Trash2, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -7,7 +7,7 @@ import { formatDateTime } from '../../utils/formatDate';
 import { exportToPdf } from '../../utils/exportToPdf';
 import { exportToExcel } from '../../utils/exportToExcel';
 
-export default function TransactionDetailModal({ open, onClose, transaction, onDelete }) {
+export default function TransactionDetailModal({ open, onClose, transaction, onEdit, onDelete }) {
   if (!transaction) return null;
   const isIn = transaction.type === 'in';
 
@@ -32,7 +32,14 @@ export default function TransactionDetailModal({ open, onClose, transaction, onD
       onClose={onClose}
       title={isIn ? 'Stock In Details' : 'Stock Out Details'}
       size="md"
-      footer={<Button variant="danger" onClick={() => onDelete(transaction)}><Trash2 className="w-4 h-4" /> Delete Entry</Button>}
+     footer={
+        (onEdit || onDelete) ? (
+          <>
+            {onEdit && <Button variant="outline" onClick={() => onEdit(transaction)}><Pencil className="w-4 h-4 cursor-pointer" /> Edit</Button>}
+            {onDelete && <Button variant="danger" onClick={() => onDelete(transaction)}><Trash2 className="w-4 h-4 cursor-pointer" /> Delete</Button>}
+          </>
+        ) : null
+      }
     >
       <div id="printable-area">
         <div className="flex items-start justify-between mb-4">
@@ -59,9 +66,9 @@ export default function TransactionDetailModal({ open, onClose, transaction, onD
       </div>
 
       <div className="flex gap-2 mt-5 pt-4 border-t border-navy-100/50 dark:border-white/5">
-        <Button variant="outline" onClick={handlePrint} className="flex-1"><Printer className="w-4 h-4" /> Print</Button>
-        <Button variant="outline" onClick={handlePdf} className="flex-1"><FileDown className="w-4 h-4" /> PDF</Button>
-        <Button variant="outline" onClick={handleExcel} className="flex-1"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
+        <Button variant="outline" onClick={handlePrint} className="flex-1 cursor-pointer"><Printer className="w-4 h-4" /> Print</Button>
+        <Button variant="outline" onClick={handlePdf} className="flex-1 cursor-pointer"><FileDown className="w-4 h-4" /> PDF</Button>
+        <Button variant="outline" onClick={handleExcel} className="flex-1 cursor-pointer"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
       </div>
     </Modal>
   );

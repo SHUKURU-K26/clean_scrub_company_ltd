@@ -61,8 +61,8 @@ export default function ProductFormModal({ open, onClose, product }) {
         </div>
 
         <div className="flex gap-2 pt-2">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-          <Button type="submit" loading={isSubmitting} className="flex-1">{isEdit ? 'Save Changes' : 'Add Product'}</Button>
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1 cursor-pointer">Cancel</Button>
+          <Button type="submit" loading={isSubmitting} className="flex-1 cursor-pointer">{isEdit ? 'Save Changes' : 'Add Product'}</Button>
         </div>
       </form>
     </Modal>

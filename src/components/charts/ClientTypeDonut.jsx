@@ -1,18 +1,40 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { useState } from 'react';
+import { PieChart, Pie, Cell, Sector, ResponsiveContainer, Tooltip } from 'recharts';
 import ChartCard from './ChartCard';
+import { useCountUp } from '../../hooks/useCountUp';
 
 const COLORS = { home: '#16A34A', office: '#0B2545', hotel: '#34D399', hospital: '#F59E0B' };
 const LABELS = { home: 'Homes', office: 'Offices', hotel: 'Hotels', hospital: 'Hospitals' };
 
+function renderActiveShape(props) {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+  return <Sector cx={cx} cy={cy} innerRadius={innerRadius} outerRadius={outerRadius + 6} startAngle={startAngle} endAngle={endAngle} fill={fill} />;
+}
+
 export default function ClientTypeDonut({ data }) {
+  const [activeIndex, setActiveIndex] = useState(null);
   const total = data.reduce((s, d) => s + d.value, 0);
+  const animatedTotal = useCountUp(total, { duration: 1000 });
 
   return (
     <ChartCard title="Sales by Client Type" subtitle="Stock-out volume by segment" delay={0.2}>
       <div className="h-52 relative">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={data} dataKey="value" nameKey="name" innerRadius={55} outerRadius={80} paddingAngle={3} strokeWidth={0}>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              innerRadius={55}
+              outerRadius={80}
+              paddingAngle={3}
+              strokeWidth={0}
+              animationDuration={800}
+              activeIndex={activeIndex}
+              activeShape={renderActiveShape}
+              onMouseEnter={(_, idx) => setActiveIndex(idx)}
+              onMouseLeave={() => setActiveIndex(null)}
+            >
               {data.map((entry) => (
                 <Cell key={entry.name} fill={COLORS[entry.name] || '#94A3B8'} />
               ))}
@@ -21,7 +43,7 @@ export default function ClientTypeDonut({ data }) {
           </PieChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <p className="text-xl font-display font-bold text-navy-800 dark:text-white">{total}</p>
+          <p className="text-xl font-display font-bold text-navy-800 dark:text-white">{animatedTotal}</p>
           <p className="text-[10px] text-navy-400 dark:text-navy-300">units</p>
         </div>
       </div>

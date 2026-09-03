@@ -62,12 +62,12 @@ export default function Login() {
             <input type="checkbox" className="w-4 h-4 rounded accent-green-500" {...register('remember')} />
             {t('auth.rememberMe')}
           </label>
-          <Link to="/forgot-password" className="text-green-600 dark:text-green-400 font-medium hover:underline">
+          <Link to="/forgot-password" className="text-green-600 dark:text-green-400 font-medium hover:underline cursor-pointer">
             {t('auth.forgotPassword')}
           </Link>
         </div>
 
-        <Button type="submit" loading={loading} className="w-full mt-2">
+        <Button type="submit" loading={loading} className="w-full mt-2 cursor-pointer">
           {t('auth.login')}
         </Button>
 

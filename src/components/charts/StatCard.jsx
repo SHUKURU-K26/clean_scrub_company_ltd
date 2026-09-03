@@ -1,9 +1,14 @@
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import Skeleton from '../ui/Skeleton';
+import Sparkline from './Sparkline';
+import { useCountUp } from '../../hooks/useCountUp';
+import { formatNumber } from '../../utils/formatCurrency';
 import { cn } from '../../utils/cn';
 
-export default function StatCard({ icon: Icon, label, value, change, gradient, loading, delay = 0 }) {
+export default function StatCard({ icon: Icon, label, value, format = formatNumber, change, gradient, loading, delay = 0, sparkline, sparklineColor }) {
+  const animated = useCountUp(loading ? 0 : (value || 0), { duration: 900 });
+
   if (loading) {
     return (
       <div className="rounded-2xl glass p-5 space-y-3">
@@ -35,7 +40,12 @@ export default function StatCard({ icon: Icon, label, value, change, gradient, l
         )}
       </div>
       <p className="text-xs font-medium text-navy-400 dark:text-navy-300 mb-1">{label}</p>
-      <p className="text-2xl font-display font-bold text-navy-800 dark:text-white">{value}</p>
+      <p className="text-lg sm:text-sm font-display font-bold text-navy-800 dark:text-white leading-tight truncate">{format(animated)}</p>
+      {sparkline && (
+        <div className="mt-3 -mx-1">
+          <Sparkline data={sparkline} color={sparklineColor} />
+        </div>
+      )}
     </motion.div>
   );
 }

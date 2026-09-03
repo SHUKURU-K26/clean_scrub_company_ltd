@@ -43,7 +43,31 @@ export const useOtpStore = create(
         }));
         return true;
       },
-    }),
+       
+      regenerateRecoveryCodes: (email, newCodes) =>
+      set((state) => ({
+        byEmail: {
+          ...state.byEmail,
+          [email]: {
+            ...state.byEmail[email],
+            recoveryCodes: newCodes.map((code) => ({ code, used: false })),
+          },
+        },
+      })),
+
+      clearSecret: (email) =>
+        set((state) => {
+          const updated = { ...state.byEmail };
+          delete updated[email];
+          return { byEmail: updated };
+        }),
+
+      getRecoveryCodesRemaining: (email) => {
+        const codes = get().byEmail[email]?.recoveryCodes || [];
+        return codes.filter((c) => !c.used).length;
+      },
+        
+      }),
     { name: 'css-otp' }
   )
 );

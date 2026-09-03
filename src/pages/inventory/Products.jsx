@@ -88,8 +88,8 @@ export default function Products() {
           <h1 className="font-display text-2xl font-bold text-navy-800 dark:text-white">Products</h1>
           <p className="text-sm text-navy-400 dark:text-navy-300 mt-1">{products.length} items in your catalog</p>
         </div>
-        <Button onClick={() => { setEditingProduct(null); setFormOpen(true); }}>
-          <Plus className="w-4 h-4" /> Add Product
+        <Button onClick={() => { setEditingProduct(null); setFormOpen(true); }} className="cursor-pointer">
+          <Plus className="w-4 h-4 " /> Add Product
         </Button>
       </div>
 

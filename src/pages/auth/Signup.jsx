@@ -77,13 +77,13 @@ export default function Signup() {
           {...register('confirmPassword')}
         />
 
-        <Button type="submit" loading={loading} className="w-full mt-2">
+        <Button type="submit" loading={loading} className="w-full mt-2 cursor-pointer">
           {t('auth.signup')}
         </Button>
 
         <p className="text-center text-sm text-navy-400 dark:text-navy-300 pt-2">
           {t('auth.alreadyHaveAccount')}{' '}
-          <Link to="/login" className="text-green-600 dark:text-green-400 font-semibold hover:underline">
+          <Link to="/login" className="text-green-600 dark:text-green-400 font-semibold hover:underline cursor-pointer">
             {t('auth.login')}
           </Link>
         </p>

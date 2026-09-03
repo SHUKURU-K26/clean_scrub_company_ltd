@@ -78,7 +78,7 @@ export default function ForgotPassword() {
           {...register('email')}
         />
 
-        <Button type="submit" loading={loading} className="w-full mt-2">
+        <Button type="submit" loading={loading} className="w-full mt-2 cursor-pointer">
           Send reset link
         </Button>
 

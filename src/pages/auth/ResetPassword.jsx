@@ -47,7 +47,7 @@ export default function ResetPassword() {
           <div className="w-16 h-16 mx-auto rounded-2xl glass flex items-center justify-center">
             <CheckCircle2 className="w-7 h-7 text-green-500" strokeWidth={2} />
           </div>
-          <Button onClick={() => navigate('/login')} className="w-full">
+          <Button onClick={() => navigate('/login')} className="w-full cursor-pointer">
             Continue to login
           </Button>
         </div>
@@ -74,7 +74,7 @@ export default function ResetPassword() {
           {...register('confirmPassword')}
         />
 
-        <Button type="submit" loading={loading} className="w-full mt-2">
+        <Button type="submit" loading={loading} className="w-full mt-2 cursor-pointer">
           Update password
         </Button>
       </form>

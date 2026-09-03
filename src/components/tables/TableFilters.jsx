@@ -18,7 +18,7 @@ export default function TableFilters({ search, onSearchChange, placeholder = 'Se
             className="w-full h-11 pl-10 pr-9 rounded-xl bg-white/60 dark:bg-white/5 border border-navy-100 dark:border-white/10 text-sm text-navy-800 dark:text-white placeholder:text-navy-300 dark:placeholder:text-navy-500 outline-none focus:border-green-400 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-500/20 transition-all"
           />
           {search && (
-            <button onClick={() => onSearchChange('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-300 hover:text-navy-500">
+            <button onClick={() => onSearchChange('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-300 hover:text-navy-500 cursor-pointer">
               <X className="w-4 h-4" />
             </button>
           )}

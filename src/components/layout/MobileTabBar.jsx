@@ -71,7 +71,7 @@ export default function MobileTabBar() {
               <div className="flex items-center justify-between mb-4">
                 <span className="font-display font-bold text-navy-800 dark:text-white">Menu</span>
                 <button onClick={() => setMoreOpen(false)}>
-                  <X className="w-5 h-5 text-navy-500 dark:text-navy-200" />
+                  <X className="w-5 h-5 text-navy-500 dark:text-navy-200 cursor-pointer" />
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-3">

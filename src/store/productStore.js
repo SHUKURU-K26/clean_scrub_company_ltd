@@ -25,6 +25,15 @@ export const useProductStore = create(
         }));
       },
 
+        // Synchronous stock adjustment — used internally by transaction logic
+        // (edits, deletes, bulk deletes) so multiple adjustments made in sequence
+        // don't race against each other the way stacked async calls with delays would
+        adjustQuantity: (id, delta) => {
+        set((state) => ({
+            products: state.products.map((p) => (p.id === id ? { ...p, quantity: Math.max(0, p.quantity + delta) } : p)),
+        }));
+        },
+
       deleteProduct: async (id) => {
         await new Promise((r) => setTimeout(r, 400));
         set((state) => ({ products: state.products.filter((p) => p.id !== id) }));

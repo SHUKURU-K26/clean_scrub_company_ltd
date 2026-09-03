@@ -110,7 +110,7 @@ export default function VerifyOtp() {
 
           <div className="rounded-xl glass p-3 flex items-center justify-between gap-2">
             <code className="text-xs text-navy-600 dark:text-navy-200 truncate">{setupSecret.base32Secret}</code>
-            <button onClick={handleCopy} className="shrink-0 text-navy-400 hover:text-green-500">
+            <button onClick={handleCopy} className="shrink-0 text-navy-400 hover:text-green-500 cursor-pointer">
               {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
             </button>
           </div>
@@ -124,7 +124,7 @@ export default function VerifyOtp() {
             <OtpInputGroup value={otp} onChange={setOtp} error={error} />
           </div>
 
-          <Button onClick={handleVerifySetup} loading={loading} className="w-full">
+          <Button onClick={handleVerifySetup} loading={loading} className="w-full cursor-pointer">
             <ShieldCheck className="w-4 h-4" /> Confirm & Activate
           </Button>
         </div>
@@ -149,19 +149,19 @@ export default function VerifyOtp() {
           </div>
         )}
 
-        <Button onClick={handleVerifyLogin} loading={loading} className="w-full">
+        <Button onClick={handleVerifyLogin} loading={loading} className="w-full cursor-pointer">
           {t('auth.verifyOtp')}
         </Button>
 
         <button
           onClick={() => { setMode(mode === 'code' ? 'recovery' : 'code'); setError(''); setOtp(''); setRecoveryCode(''); }}
-          className="w-full flex items-center justify-center gap-1.5 text-sm text-navy-400 dark:text-navy-300 hover:text-green-500 font-medium"
+          className="w-full flex items-center justify-center gap-1.5 text-sm text-navy-400 dark:text-navy-300 hover:text-green-500 font-medium cursor-pointer"
         >
           <KeyRound className="w-3.5 h-3.5" />
           {mode === 'code' ? t('auth.recoveryCode') : 'Use authenticator code instead'}
         </button>
 
-        <button onClick={() => navigate('/login')} className="w-full flex items-center justify-center gap-1.5 text-sm text-navy-400 dark:text-navy-300 hover:text-navy-600 dark:hover:text-white">
+        <button onClick={() => navigate('/login')} className="w-full flex items-center justify-center gap-1.5 text-sm text-navy-400 dark:text-navy-300 hover:text-navy-600 dark:hover:text-white cursor-pointer">
           <ArrowLeft className="w-3.5 h-3.5" /> {t('common.back')}
         </button>
       </div>

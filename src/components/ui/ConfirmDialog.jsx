@@ -12,8 +12,8 @@ export default function ConfirmDialog({ open, onClose, onConfirm, title = 'Are y
         <h3 className="font-display font-bold text-navy-800 dark:text-white mb-1.5">{title}</h3>
         {description && <p className="text-sm text-navy-400 dark:text-navy-300 mb-6">{description}</p>}
         <div className="flex gap-2">
-          <Button variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-          <Button variant="danger" onClick={onConfirm} loading={loading} className="flex-1">Delete</Button>
+          <Button variant="outline" onClick={onClose} className="flex-1 cursor-pointer">Cancel</Button>
+          <Button variant="danger" onClick={onConfirm} loading={loading} className="flex-1 cursor-pointer">Delete</Button>
         </div>
       </div>
     </Modal>

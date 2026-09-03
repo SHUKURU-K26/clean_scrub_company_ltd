@@ -39,7 +39,7 @@ export default function Modal({ open, onClose, title, children, size = 'md', foo
             {title && (
               <div className="flex items-center justify-between px-5 sm:px-6 h-16 border-b border-navy-100/50 dark:border-white/5 shrink-0">
                 <h3 className="font-display font-bold text-navy-800 dark:text-white">{title}</h3>
-                <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-navy-400 hover:bg-navy-50 dark:hover:bg-white/5 hover:text-navy-700 dark:hover:text-white">
+                <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-navy-400 hover:bg-navy-50 dark:hover:bg-white/5 hover:text-navy-700 dark:hover:text-white cursor-pointer">
                   <X className="w-4 h-4" />
                 </button>
               </div>
