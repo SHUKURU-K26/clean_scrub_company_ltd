@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: clean_scrub_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: clean_scrub_user
+      POSTGRES_PASSWORD: clean_scrub_pass
+      POSTGRES_DB: clean_scrub_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - clean_scrub_pgdata:/var/lib/postgresql/data
+
+volumes:
+  clean_scrub_pgdata:
