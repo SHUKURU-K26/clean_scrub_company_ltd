@@ -1,0 +1,48 @@
+{
+  "common": {
+    "appName": "Clean & Scrub",
+    "save": "Bika",
+    "cancel": "Hagarika",
+    "edit": "Hindura",
+    "delete": "Siba",
+    "search": "Shakisha",
+    "filter": "Shungura",
+    "export": "Kubikuza",
+    "print": "Sohora ku rupapuro",
+    "close": "Funga",
+    "confirm": "Emeza",
+    "back": "Subira inyuma",
+    "next": "Komeza",
+    "submit": "Ohereza",
+    "loading": "Birimo gutangira...",
+    "noResults": "Nta gisubizo cyabonetse",
+    "actions": "Ibikorwa",
+    "viewDetails": "Reba amakuru arambuye"
+  },
+  "nav": {
+    "dashboard": "Ahabanza",
+    "products": "Ibicuruzwa",
+    "stockIn": "Ibyinjiye",
+    "stockOut": "Ibyasohotse",
+    "customers": "Abakiriya",
+    "reports": "Raporo",
+    "settings": "Igenamiterere",
+    "profile": "Umwirondoro",
+    "logout": "Gusohoka"
+  },
+  "auth": {
+    "login": "Kwinjira",
+    "signup": "Kwiyandikisha",
+    "email": "Imeyili",
+    "password": "Ijambo banga",
+    "confirmPassword": "Emeza ijambo banga",
+    "forgotPassword": "Wibagiwe ijambo banga?",
+    "rememberMe": "Nyibuke",
+    "dontHaveAccount": "Ntufite konti?",
+    "alreadyHaveAccount": "Usanzwe ufite konti?",
+    "resetPassword": "Hindura ijambo banga",
+    "verifyOtp": "Emeza kode",
+    "enterOtpCode": "Andika kode y'imibare 6 iva kuri porogaramu yawe y'ubwizigenge",
+    "recoveryCode": "Koresha kode yo kugarura ahubwo"
+  }
+}
