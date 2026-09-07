@@ -1,144 +1,83 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { TRANSACTIONS as SEED_TRANSACTIONS } from '../data/mockData';
+import api from '../services/api';
+import { camelize, snakeize } from '../utils/normalize';
 import { useProductStore } from './productStore';
+import { useCustomerStore } from './customerStore';
 
-export const useTransactionStore = create(
-  persist(
-    (set, get) => ({
-      transactions: SEED_TRANSACTIONS,
+// After any stock-in/out create, edit, or delete, product quantities (and
+// possibly the customer list, if a new customer was created inline) change
+// server-side. Rather than duplicating that math on the frontend, we just
+// refetch — same "invalidate and refetch" pattern as the rest of the app,
+// and it guarantees the UI never drifts from what Postgres actually has.
+async function refreshRelatedData() {
+  await Promise.all([
+    useProductStore.getState().fetchProducts(),
+    useCustomerStore.getState().fetchCustomers(),
+  ]);
+}
 
-      addStockIn: async ({ productId, quantity, supplier, date }) => {
-        await new Promise((r) => setTimeout(r, 500));
-        const product = useProductStore.getState().getProductById(productId);
-        if (!product) throw new Error('Product not found');
+export const useTransactionStore = create((set) => ({
+  transactions: [],
+  suppliers: [],
+  loading: false,
 
-        useProductStore.getState().adjustQuantity(productId, quantity);
+  fetchTransactions: async () => {
+    set({ loading: true });
+    try {
+      const { data } = await api.get('/transactions');
+      set({ transactions: camelize(data), loading: false });
+    } catch (err) {
+      set({ loading: false });
+      throw err;
+    }
+  },
 
-        const tx = {
-          id: `tx${Date.now()}`,
-          type: 'in',
-          productId,
-          productName: product.name,
-          category: product.category,
-          quantity,
-          unitPrice: product.unitPrice,
-          supplier,
-          date: new Date(date).toISOString(),
-        };
-        set((state) => ({ transactions: [tx, ...state.transactions] }));
-        return tx;
-      },
+  fetchSuppliers: async () => {
+    const { data } = await api.get('/transactions/suppliers');
+    set({ suppliers: camelize(data) });
+  },
 
-      addStockOut: async ({ productId, quantity, customer, date }) => {
-        await new Promise((r) => setTimeout(r, 500));
-        const product = useProductStore.getState().getProductById(productId);
-        if (!product) throw new Error('Product not found');
-        if (quantity > product.quantity) throw new Error('Not enough stock available');
+  addStockIn: async ({ productId, quantity, supplier, date }) => {
+    const { data } = await api.post('/transactions/stock-in', snakeize({ productId, quantity, supplier, date }));
+    const tx = camelize(data);
+    set((state) => ({ transactions: [tx, ...state.transactions] }));
+    await useProductStore.getState().fetchProducts();
+    return tx;
+  },
 
-        useProductStore.getState().adjustQuantity(productId, -quantity);
+  addStockOut: async (payload) => {
+    const { data } = await api.post('/transactions/stock-out', snakeize(payload));
+    const tx = camelize(data);
+    set((state) => ({ transactions: [tx, ...state.transactions] }));
+    await refreshRelatedData();
+    return tx;
+  },
 
-        const tx = {
-          id: `tx${Date.now()}`,
-          type: 'out',
-          productId,
-          productName: product.name,
-          category: product.category,
-          quantity,
-          unitPrice: product.unitPrice,
-          customerId: customer.id,
-          customerName: customer.name,
-          customerPhone: customer.phone,
-          customerType: customer.type,
-          date: new Date(date).toISOString(),
-        };
-        set((state) => ({ transactions: [tx, ...state.transactions] }));
-        return tx;
-      },
+  updateStockIn: async (id, { productId, quantity, supplier, date }) => {
+    const { data } = await api.put(`/transactions/stock-in/${id}`, snakeize({ productId, quantity, supplier, date }));
+    const updated = camelize(data);
+    set((state) => ({ transactions: state.transactions.map((t) => (t.id === id ? updated : t)) }));
+    await useProductStore.getState().fetchProducts();
+    return updated;
+  },
 
-      updateStockIn: async (id, { productId, quantity, supplier, date }) => {
-        const tx = get().transactions.find((t) => t.id === id);
-        if (!tx) throw new Error('Entry not found');
-        await new Promise((r) => setTimeout(r, 500));
+  updateStockOut: async (id, payload) => {
+    const { data } = await api.put(`/transactions/stock-out/${id}`, snakeize(payload));
+    const updated = camelize(data);
+    set((state) => ({ transactions: state.transactions.map((t) => (t.id === id ? updated : t)) }));
+    await refreshRelatedData();
+    return updated;
+  },
 
-        // Revert the original quantity, then apply the new one — this works
-        // correctly whether the product stayed the same or changed
-        useProductStore.getState().adjustQuantity(tx.productId, -tx.quantity);
-        useProductStore.getState().adjustQuantity(productId, quantity);
+  deleteTransaction: async (id) => {
+    await api.delete(`/transactions/${id}`);
+    set((state) => ({ transactions: state.transactions.filter((t) => t.id !== id) }));
+    await useProductStore.getState().fetchProducts();
+  },
 
-        const product = useProductStore.getState().getProductById(productId);
-        const updatedTx = {
-          ...tx,
-          productId,
-          productName: product.name,
-          category: product.category,
-          quantity,
-          unitPrice: product.unitPrice,
-          supplier,
-          date: new Date(date).toISOString(),
-        };
-
-        set((state) => ({ transactions: state.transactions.map((t) => (t.id === id ? updatedTx : t)) }));
-        return updatedTx;
-      },
-
-      updateStockOut: async (id, { productId, quantity, customer, date }) => {
-        const tx = get().transactions.find((t) => t.id === id);
-        if (!tx) throw new Error('Entry not found');
-        await new Promise((r) => setTimeout(r, 500));
-
-        const targetProduct = useProductStore.getState().getProductById(productId);
-        if (!targetProduct) throw new Error('Product not found');
-
-        // If staying on the same product, the original quantity is still
-        // "reserved" against it, so it counts back toward what's available
-        // for validating this edit
-        const available = productId === tx.productId ? targetProduct.quantity + tx.quantity : targetProduct.quantity;
-        if (quantity > available) throw new Error(`Only ${available} ${targetProduct.unit} available`);
-
-        useProductStore.getState().adjustQuantity(tx.productId, tx.quantity);
-        useProductStore.getState().adjustQuantity(productId, -quantity);
-
-        const product = useProductStore.getState().getProductById(productId);
-        const updatedTx = {
-          ...tx,
-          productId,
-          productName: product.name,
-          category: product.category,
-          quantity,
-          unitPrice: product.unitPrice,
-          customerId: customer.id,
-          customerName: customer.name,
-          customerPhone: customer.phone,
-          customerType: customer.type,
-          date: new Date(date).toISOString(),
-        };
-
-        set((state) => ({ transactions: state.transactions.map((t) => (t.id === id ? updatedTx : t)) }));
-        return updatedTx;
-      },
-
-      // Internal, synchronous — reverts a transaction's stock effect and
-      // removes it. Shared by single and bulk delete so bulk operations
-      // don't stack per-item delays or race on stock updates.
-      _revertAndRemove: (id) => {
-        const tx = get().transactions.find((t) => t.id === id);
-        if (!tx) return;
-        const delta = tx.type === 'in' ? -tx.quantity : tx.quantity;
-        useProductStore.getState().adjustQuantity(tx.productId, delta);
-        set((state) => ({ transactions: state.transactions.filter((t) => t.id !== id) }));
-      },
-
-      deleteTransaction: async (id) => {
-        await new Promise((r) => setTimeout(r, 400));
-        get()._revertAndRemove(id);
-      },
-
-      deleteMultipleTransactions: async (ids) => {
-        await new Promise((r) => setTimeout(r, 500));
-        ids.forEach((id) => get()._revertAndRemove(id));
-      },
-    }),
-    { name: 'css-transactions' }
-  )
-);
+  deleteMultipleTransactions: async (ids) => {
+    await api.post('/transactions/bulk-delete', { ids });
+    set((state) => ({ transactions: state.transactions.filter((t) => !ids.includes(t.id)) }));
+    await useProductStore.getState().fetchProducts();
+  },
+}));

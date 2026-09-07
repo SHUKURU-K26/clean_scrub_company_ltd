@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, ArrowDownToLine } from 'lucide-react';
 import { toast } from 'sonner';
 import DataTable from '../../components/tables/DataTable';
@@ -17,9 +17,15 @@ import { exportToExcel } from '../../utils/exportToExcel';
 
 export default function StockIn() {
   const allTransactions = useTransactionStore((state) => state.transactions);
+  const loading = useTransactionStore((state) => state.loading);
+  const fetchTransactions = useTransactionStore((state) => state.fetchTransactions);
   const deleteTransaction = useTransactionStore((state) => state.deleteTransaction);
   const deleteMultipleTransactions = useTransactionStore((state) => state.deleteMultipleTransactions);
   const transactions = useMemo(() => allTransactions.filter((t) => t.type === 'in'), [allTransactions]);
+
+  useEffect(() => {
+    fetchTransactions().catch((err) => toast.error(err.message || 'Failed to load stock-in entries'));
+  }, [fetchTransactions]);
 
   const [search, setSearch] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -54,22 +60,32 @@ export default function StockIn() {
   const handleAdd = () => { setEditingTx(null); setFormOpen(true); };
   const handleEdit = (tx) => { setViewingTx(null); setEditingTx(tx); setFormOpen(true); };
 
-  const handleDeleteConfirm = async () => {
+    const handleDeleteConfirm = async () => {
     setDeleting(true);
-    await deleteTransaction(deletingTx.id);
-    setDeleting(false);
-    setDeletingTx(null);
-    setViewingTx(null);
-    toast.success('Entry deleted and stock adjusted');
+    try {
+      await deleteTransaction(deletingTx.id);
+      setDeletingTx(null);
+      setViewingTx(null);
+      toast.success('Entry deleted and stock adjusted');
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete entry');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleBulkDelete = async () => {
     setBulkDeleting(true);
-    await deleteMultipleTransactions(selectedIds);
-    setBulkDeleting(false);
-    setBulkDeleteOpen(false);
-    toast.success(`${selectedIds.length} entries deleted and stock adjusted`);
-    clearSelection();
+    try {
+      await deleteMultipleTransactions(selectedIds);
+      setBulkDeleteOpen(false);
+      toast.success(`${selectedIds.length} entries deleted and stock adjusted`);
+      clearSelection();
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete entries');
+    } finally {
+      setBulkDeleting(false);
+    }
   };
 
   const selectedRows = useMemo(() => transactions.filter((t) => selectedIds.includes(t.id)), [transactions, selectedIds]);
@@ -120,6 +136,7 @@ export default function StockIn() {
         <DataTable
           columns={columns}
           data={filtered}
+          loading={loading}
           onRowClick={setViewingTx}
           emptyMessage="No stock-in entries match your filters"
           selectable
@@ -130,6 +147,7 @@ export default function StockIn() {
 
         <DataCardList
           data={filtered}
+          loading={loading}
           onCardClick={setViewingTx}
           emptyMessage="No stock-in entries match your filters"
           selectable

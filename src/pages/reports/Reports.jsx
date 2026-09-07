@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { FileDown, FileSpreadsheet, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { toast } from 'sonner';
 import DataTable from '../../components/tables/DataTable';
@@ -15,6 +15,7 @@ import StockInFormModal from '../../components/transactions/StockInFormModal';
 import StockOutFormModal from '../../components/transactions/StockOutFormModal';
 import TransactionDetailModal from '../../components/transactions/TransactionDetailModal';
 import { useTransactionStore } from '../../store/transactionStore';
+import { useCustomerStore } from '../../store/customerStore';
 import { getPresetRange, computeReportSummary, buildDailyValueTrend } from '../../services/reportService';
 import { CATEGORIES } from '../../data/mockData';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -25,8 +26,16 @@ import { cn } from '../../utils/cn';
 
 export default function Reports() {
   const allTransactions = useTransactionStore((state) => state.transactions);
+  const loading = useTransactionStore((state) => state.loading);
+  const fetchTransactions = useTransactionStore((state) => state.fetchTransactions);
+  const fetchCustomers = useCustomerStore((state) => state.fetchCustomers);
   const deleteTransaction = useTransactionStore((state) => state.deleteTransaction);
   const deleteMultipleTransactions = useTransactionStore((state) => state.deleteMultipleTransactions);
+
+  useEffect(() => {
+    fetchTransactions().catch((err) => toast.error(err.message || 'Failed to load report data'));
+    fetchCustomers().catch((err) => toast.error(err.message || 'Failed to load customers'));
+  }, [fetchTransactions, fetchCustomers]);
 
   const [preset, setPreset] = useState('30d');
   const [{ from, to }, setRange] = useState(getPresetRange('30d'));
@@ -163,8 +172,12 @@ export default function Reports() {
           <p className="text-sm text-navy-400 dark:text-navy-300 mt-1">{filtered.length} transactions in this report</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleReportPdf}><FileDown className="w-4 h-4 cursor-pointer" /> Export PDF</Button>
-          <Button variant="outline" onClick={handleReportExcel}><FileSpreadsheet className="w-4 h-4 cursor-pointer" /> Export Excel</Button>
+          <Button variant="outline" onClick={handleReportPdf} className="cursor-pointer">
+            <FileDown className="w-4 h-4 " /> Export PDF
+          </Button>
+          <Button variant="outline" onClick={handleReportExcel} className="cursor-pointer">
+            <FileSpreadsheet className="w-4 h-4 " /> Export Excel
+          </Button>
         </div>
       </div>
 

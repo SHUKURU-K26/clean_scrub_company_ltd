@@ -29,16 +29,30 @@ export function getPresetRange(key) {
 export function computeReportSummary(transactions) {
   const stockIn = transactions.filter((t) => t.type === 'in');
   const stockOut = transactions.filter((t) => t.type === 'out');
-  const totalInValue = stockIn.reduce((s, t) => s + t.quantity * t.unitPrice, 0);
-  const totalOutValue = stockOut.reduce((s, t) => s + t.quantity * t.unitPrice, 0);
+
+  // Stock In value = cost of goods purchased (unit_price on an 'in' entry
+  // is a snapshot of the product's cost price at that moment)
+  const totalCostValue = stockIn.reduce((s, t) => s + t.quantity * t.unitPrice, 0);
+
+  // Stock Out value = revenue actually charged (unit_price on an 'out'
+  // entry is a snapshot of the product's selling price)
+  const totalRevenue = stockOut.reduce((s, t) => s + t.quantity * t.unitPrice, 0);
+
+  // Profit only applies to sales — costPriceAtSale is the cost snapshot
+  // taken at the same moment, so it reflects the real margin at the time
+  // of that specific sale
+  const totalProfit = stockOut.reduce(
+    (s, t) => s + t.quantity * (t.unitPrice - (t.costPriceAtSale ?? 0)),
+    0
+  );
 
   return {
     transactionCount: transactions.length,
     stockInCount: stockIn.length,
     stockOutCount: stockOut.length,
-    totalInValue,
-    totalOutValue,
-    netValue: totalInValue - totalOutValue,
+    totalCostValue,
+    totalRevenue,
+    totalProfit,
   };
 }
 

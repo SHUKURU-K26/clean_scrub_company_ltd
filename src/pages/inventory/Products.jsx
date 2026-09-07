@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Package, MoreVertical } from 'lucide-react';
 import { toast } from 'sonner';
 import DataTable from '../../components/tables/DataTable';
@@ -15,7 +15,13 @@ import { formatCurrency } from '../../utils/formatCurrency';
 
 export default function Products() {
   const products = useProductStore((state) => state.products);
+  const loading = useProductStore((state) => state.loading);
+  const fetchProducts = useProductStore((state) => state.fetchProducts);
   const deleteProduct = useProductStore((state) => state.deleteProduct);
+
+  useEffect(() => {
+    fetchProducts().catch((err) => toast.error(err.message || 'Failed to load products'));
+  }, [fetchProducts]);
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
@@ -37,15 +43,22 @@ export default function Products() {
   }, [products, search, category, lowStockOnly]);
 
   const activeFilterCount = (category ? 1 : 0) + (lowStockOnly ? 1 : 0);
+  const emptyMessage = products.length === 0 ? 'No products yet — add your first one to get started' : 'No products match your filters';
 
   const handleEdit = (product) => { setViewingProduct(null); setEditingProduct(product); setFormOpen(true); };
+
   const handleDeleteConfirm = async () => {
     setDeleting(true);
-    await deleteProduct(deletingProduct.id);
-    setDeleting(false);
-    setDeletingProduct(null);
-    setViewingProduct(null);
-    toast.success('Product deleted');
+    try {
+      await deleteProduct(deletingProduct.id);
+      setDeletingProduct(null);
+      setViewingProduct(null);
+      toast.success('Product deleted');
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete product');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const columns = [
@@ -73,11 +86,12 @@ export default function Products() {
         );
       },
     },
-    { accessorKey: 'unitPrice', header: 'Unit Price', cell: ({ getValue }) => formatCurrency(getValue()) },
+    { accessorKey: 'costPrice', header: 'Cost Price', cell: ({ getValue }) => formatCurrency(getValue()) },
+    { accessorKey: 'sellingPrice', header: 'Selling Price', cell: ({ getValue }) => formatCurrency(getValue()) },
     {
       id: 'totalValue',
       header: 'Total Value',
-      cell: ({ row }) => <span className="font-semibold">{formatCurrency(row.original.quantity * row.original.unitPrice)}</span>,
+      cell: ({ row }) => <span className="font-semibold">{formatCurrency(row.original.quantity * row.original.costPrice)}</span>,
     },
   ];
 
@@ -89,7 +103,7 @@ export default function Products() {
           <p className="text-sm text-navy-400 dark:text-navy-300 mt-1">{products.length} items in your catalog</p>
         </div>
         <Button onClick={() => { setEditingProduct(null); setFormOpen(true); }} className="cursor-pointer">
-          <Plus className="w-4 h-4 " /> Add Product
+          <Plus className="w-4 h-4" /> Add Product
         </Button>
       </div>
 
@@ -105,12 +119,13 @@ export default function Products() {
           </label>
         </TableFilters>
 
-        <DataTable columns={columns} data={filtered} onRowClick={setViewingProduct} emptyMessage="No products match your filters" />
+        <DataTable columns={columns} data={filtered} loading={loading} onRowClick={setViewingProduct} emptyMessage={emptyMessage} />
 
         <DataCardList
           data={filtered}
+          loading={loading}
           onCardClick={setViewingProduct}
-          emptyMessage="No products match your filters"
+          emptyMessage={emptyMessage}
           renderCard={(p) => (
             <div className="flex items-start gap-3">
               <div className="w-11 h-11 rounded-xl bg-navy-50 dark:bg-white/5 flex items-center justify-center shrink-0">
@@ -126,7 +141,7 @@ export default function Products() {
                   <span className="text-sm font-semibold text-navy-700 dark:text-navy-100">
                     {p.quantity} {p.unit} {p.quantity <= p.reorderLevel && <Badge variant="amber" className="ml-1.5">Low</Badge>}
                   </span>
-                  <span className="text-sm font-bold text-green-600">{formatCurrency(p.unitPrice)}</span>
+                  <span className="text-sm font-bold text-green-600">{formatCurrency(p.sellingPrice)}</span>
                 </div>
               </div>
             </div>

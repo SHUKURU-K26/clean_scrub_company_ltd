@@ -11,12 +11,18 @@ export default function TransactionDetailModal({ open, onClose, transaction, onE
   if (!transaction) return null;
   const isIn = transaction.type === 'in';
 
+  const totalValue = transaction.quantity * transaction.unitPrice;
+  const profit = !isIn && transaction.costPriceAtSale != null
+    ? transaction.quantity * (transaction.unitPrice - transaction.costPriceAtSale)
+    : null;
+
   const rows = [
     ['Product', transaction.productName],
     ['Category', transaction.category],
     ['Quantity', String(transaction.quantity)],
-    ['Unit Price', formatCurrency(transaction.unitPrice)],
-    ['Total Value', formatCurrency(transaction.quantity * transaction.unitPrice)],
+    [isIn ? 'Cost Price' : 'Selling Price', formatCurrency(transaction.unitPrice)],
+    [isIn ? 'Total Cost' : 'Total Revenue', formatCurrency(totalValue)],
+    ...(profit !== null ? [['Profit', formatCurrency(profit)]] : []),
     isIn ? ['Supplier', transaction.supplier] : ['Customer', transaction.customerName],
     ...(isIn ? [] : [['Phone', transaction.customerPhone], ['Client Type', transaction.customerType]]),
     ['Date & Time', formatDateTime(transaction.date)],

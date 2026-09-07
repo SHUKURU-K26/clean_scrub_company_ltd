@@ -6,18 +6,36 @@ export const useAuthStore = create(
     (set) => ({
       user: null,
       isAuthenticated: false,
-      isOtpVerified: false,
-      pendingUser: null, // set once email+password succeed, before OTP is confirmed
+      accessToken: null,
 
-      setPendingUser: (user) => set({ pendingUser: user }),
+      pendingUser: null,
+      pendingToken: null,
+      otpSetupRequired: false,
+      otpProvisioningUri: null,
+      otpSecret: null,
 
-      completeLogin: (user) =>
-        set({ user, isAuthenticated: true, isOtpVerified: true, pendingUser: null }),
-      
+      setPendingAuth: ({ user, pendingToken, otpSetupRequired, otpProvisioningUri, otpSecret }) =>
+        set({
+          pendingUser: user,
+          pendingToken,
+          otpSetupRequired: !!otpSetupRequired,
+          otpProvisioningUri: otpProvisioningUri || null,
+          otpSecret: otpSecret || null,
+        }),
+
+      completeLogin: (user, accessToken) =>
+        set({
+          user, accessToken, isAuthenticated: true,
+          pendingUser: null, pendingToken: null, otpSetupRequired: false, otpProvisioningUri: null, otpSecret: null,
+        }),
+
       updateUser: (updates) => set((state) => ({ user: { ...state.user, ...updates } })),
 
       logout: () =>
-        set({ user: null, isAuthenticated: false, isOtpVerified: false, pendingUser: null }),
+        set({
+          user: null, accessToken: null, isAuthenticated: false,
+          pendingUser: null, pendingToken: null, otpSetupRequired: false, otpProvisioningUri: null, otpSecret: null,
+        }),
     }),
     { name: 'css-auth' }
   )

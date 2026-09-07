@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, ArrowUpFromLine } from 'lucide-react';
 import { toast } from 'sonner';
 import DataTable from '../../components/tables/DataTable';
@@ -11,6 +11,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import StockOutFormModal from '../../components/transactions/StockOutFormModal';
 import TransactionDetailModal from '../../components/transactions/TransactionDetailModal';
 import { useTransactionStore } from '../../store/transactionStore';
+import { useCustomerStore } from '../../store/customerStore';
 import { CLIENT_TYPES } from '../../data/mockData';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDateTime } from '../../utils/formatDate';
@@ -19,9 +20,17 @@ import { exportToExcel } from '../../utils/exportToExcel';
 
 export default function StockOut() {
   const allTransactions = useTransactionStore((state) => state.transactions);
+  const loading = useTransactionStore((state) => state.loading);
+  const fetchTransactions = useTransactionStore((state) => state.fetchTransactions);
+  const fetchCustomers = useCustomerStore((state) => state.fetchCustomers);
   const deleteTransaction = useTransactionStore((state) => state.deleteTransaction);
   const deleteMultipleTransactions = useTransactionStore((state) => state.deleteMultipleTransactions);
   const transactions = useMemo(() => allTransactions.filter((t) => t.type === 'out'), [allTransactions]);
+
+  useEffect(() => {
+    fetchTransactions().catch((err) => toast.error(err.message || 'Failed to load stock-out entries'));
+    fetchCustomers().catch((err) => toast.error(err.message || 'Failed to load customers'));
+  }, [fetchTransactions, fetchCustomers]);
 
   const [search, setSearch] = useState('');
   const [clientType, setClientType] = useState('');

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, User, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 import DataTable from '../../components/tables/DataTable';
@@ -21,9 +21,17 @@ import { exportToExcel } from '../../utils/exportToExcel';
 
 export default function Customers() {
   const customers = useCustomerStore((state) => state.customers);
+  const loading = useCustomerStore((state) => state.loading);
+  const fetchCustomers = useCustomerStore((state) => state.fetchCustomers);
   const deleteCustomer = useCustomerStore((state) => state.deleteCustomer);
   const deleteMultipleCustomers = useCustomerStore((state) => state.deleteMultipleCustomers);
   const transactions = useTransactionStore((state) => state.transactions);
+  const fetchTransactions = useTransactionStore((state) => state.fetchTransactions);
+
+  useEffect(() => {
+    fetchCustomers().catch((err) => toast.error(err.message || 'Failed to load customers'));
+    fetchTransactions().catch((err) => toast.error(err.message || 'Failed to load transaction history'));
+  }, [fetchCustomers, fetchTransactions]);
 
   const customersWithStats = useMemo(() => withCustomerStats(customers, transactions), [customers, transactions]);
 
@@ -57,22 +65,32 @@ export default function Customers() {
   const handleAdd = () => { setEditingCustomer(null); setFormOpen(true); };
   const handleEdit = (c) => { setViewingCustomer(null); setEditingCustomer(c); setFormOpen(true); };
 
-  const handleDeleteConfirm = async () => {
+    const handleDeleteConfirm = async () => {
     setDeleting(true);
-    await deleteCustomer(deletingCustomer.id);
-    setDeleting(false);
-    setDeletingCustomer(null);
-    setViewingCustomer(null);
-    toast.success('Customer deleted');
+    try {
+      await deleteCustomer(deletingCustomer.id);
+      setDeletingCustomer(null);
+      setViewingCustomer(null);
+      toast.success('Customer deleted');
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete customer');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleBulkDelete = async () => {
     setBulkDeleting(true);
-    await deleteMultipleCustomers(selectedIds);
-    setBulkDeleting(false);
-    setBulkDeleteOpen(false);
-    toast.success(`${selectedIds.length} customers deleted`);
-    clearSelection();
+    try {
+      await deleteMultipleCustomers(selectedIds);
+      setBulkDeleteOpen(false);
+      toast.success(`${selectedIds.length} customers deleted`);
+      clearSelection();
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete customers');
+    } finally {
+      setBulkDeleting(false);
+    }
   };
 
   const selectedRows = useMemo(() => customersWithStats.filter((c) => selectedIds.includes(c.id)), [customersWithStats, selectedIds]);

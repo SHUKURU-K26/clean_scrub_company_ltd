@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LogOut, Sparkles } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import cleanScrubLogo from '../../assets/clean_scrub_logo.png';
 import { NAV_ITEMS } from '../../utils/navConfig';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../utils/cn';
@@ -19,8 +20,10 @@ export default function Sidebar() {
   return (
     <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 flex-col z-40 glass-strong border-r border-white/40 dark:border-white/5">
       <div className="flex items-center gap-3 px-6 h-16 border-b border-navy-100/50 dark:border-white/5">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-navy-700 to-green-600 flex items-center justify-center shadow-lg shadow-green-600/20">
-          <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-lg shadow-green-600/20 overflow-hidden">
+          <div className="w-full h-full rounded-full border-2 border-green-600 p-0.5 bg-white/15 overflow-hidden">
+            <img src={cleanScrubLogo} alt="Clean Scrub" className="w-full h-full object-cover rounded-full" />
+          </div>
         </div>
         <div>
           <p className="font-display font-bold text-navy-800 dark:text-white text-sm leading-tight">
@@ -69,7 +72,7 @@ export default function Sidebar() {
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors duration-200"
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors duration-200 cursor-pointer"
         >
           <LogOut className="w-[18px] h-[18px]" strokeWidth={2.2} />
           {t('nav.logout')}

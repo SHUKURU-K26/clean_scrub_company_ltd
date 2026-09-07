@@ -9,6 +9,7 @@ import FormSelect from '../forms/FormSelect';
 import { productSchema } from '../../utils/productSchemas';
 import { useProductStore } from '../../store/productStore';
 import { CATEGORIES } from '../../data/mockData';
+import { formatCurrency } from '../../utils/formatCurrency';
 
 export default function ProductFormModal({ open, onClose, product }) {
   const isEdit = !!product;
@@ -19,6 +20,7 @@ export default function ProductFormModal({ open, onClose, product }) {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(productSchema) });
 
@@ -27,10 +29,15 @@ export default function ProductFormModal({ open, onClose, product }) {
       reset(
         isEdit
           ? product
-          : { name: '', sku: '', category: '', unit: '', quantity: 0, reorderLevel: 10, unitPrice: 0 }
+          : { name: '', sku: '', category: '', unit: '', quantity: 0, reorderLevel: 10, costPrice: 0, sellingPrice: 0 }
       );
     }
   }, [open, isEdit, product, reset]);
+
+  const costPrice = Number(watch('costPrice')) || 0;
+  const sellingPrice = Number(watch('sellingPrice')) || 0;
+  const margin = sellingPrice - costPrice;
+  const marginPct = costPrice > 0 ? Math.round((margin / costPrice) * 100) : 0;
 
   const onSubmit = async (data) => {
     try {
@@ -42,8 +49,8 @@ export default function ProductFormModal({ open, onClose, product }) {
         toast.success('Product added');
       }
       onClose();
-    } catch {
-      toast.error('Something went wrong — please try again');
+    } catch (err) {
+      toast.error(err.message || 'Something went wrong — please try again');
     }
   };
 
@@ -57,8 +64,17 @@ export default function ProductFormModal({ open, onClose, product }) {
           <FormInput label="Unit" placeholder="pcs, box, litre..." error={errors.unit?.message} {...register('unit')} />
           <FormInput label="Quantity in stock" type="number" error={errors.quantity?.message} {...register('quantity')} />
           <FormInput label="Reorder level" type="number" error={errors.reorderLevel?.message} {...register('reorderLevel')} />
-          <FormInput label="Unit price (RWF)" type="number" className="sm:col-span-2" error={errors.unitPrice?.message} {...register('unitPrice')} />
+          <FormInput label="Cost price (RWF)" type="number" error={errors.costPrice?.message} {...register('costPrice')} />
+          <FormInput label="Selling price (RWF)" type="number" error={errors.sellingPrice?.message} {...register('sellingPrice')} />
         </div>
+
+        {(costPrice > 0 || sellingPrice > 0) && (
+          <div className={`rounded-xl px-4 py-3 text-sm font-medium ${margin < 0 ? 'bg-red-50 text-red-600 dark:bg-red-500/10' : 'bg-green-50 text-green-600 dark:bg-green-500/10'}`}>
+            {margin < 0
+              ? `Selling below cost — you'd lose ${formatCurrency(Math.abs(margin))} per unit`
+              : `Profit margin: ${formatCurrency(margin)} per unit (${marginPct}%)`}
+          </div>
+        )}
 
         <div className="flex gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1 cursor-pointer">Cancel</Button>

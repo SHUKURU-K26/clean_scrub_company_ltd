@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { Palette, Bell, ShieldCheck, Globe, RefreshCw, KeyRound } from 'lucide-react';
@@ -11,8 +11,8 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import RegenerateCodesModal from '../../components/settings/RegenerateCodesModal';
 import { useSettingsStore } from '../../store/settingsStore';
 import { useLanguageStore, SUPPORTED_LANGUAGES } from '../../store/languageStore';
-import { useOtpStore } from '../../store/otpStore';
 import { useAuthStore } from '../../store/authStore';
+import { resetAuthenticatorRequest, getRecoveryCodesCountRequest } from '../../services/profileService';
 
 export default function Settings() {
   const lowStockAlerts = useSettingsStore((state) => state.lowStockAlerts);
@@ -23,22 +23,33 @@ export default function Settings() {
   const language = useLanguageStore((state) => state.language);
   const setLanguage = useLanguageStore((state) => state.setLanguage);
 
-  const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const getRecoveryCodesRemaining = useOtpStore((state) => state.getRecoveryCodesRemaining);
-  const clearSecret = useOtpStore((state) => state.clearSecret);
   const navigate = useNavigate();
 
+  const [codesRemaining, setCodesRemaining] = useState(null);
   const [regenerateOpen, setRegenerateOpen] = useState(false);
   const [resetAuthOpen, setResetAuthOpen] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
-  const codesRemaining = user ? getRecoveryCodesRemaining(user.email) : 0;
+  useEffect(() => {
+    getRecoveryCodesCountRequest()
+      .then((res) => setCodesRemaining(res.remaining))
+      .catch(() => setCodesRemaining(null));
+  }, []);
 
-  const handleResetAuthenticator = () => {
-    clearSecret(user.email);
-    logout();
-    toast.success('Authenticator reset — set it up again on your next login');
-    navigate('/login');
+  const handleResetAuthenticator = async () => {
+    setResetting(true);
+    try {
+      await resetAuthenticatorRequest();
+      toast.success('Authenticator reset — set it up again on your next login');
+      logout();
+      navigate('/login');
+    } catch (err) {
+      toast.error(err.message || 'Failed to reset authenticator');
+    } finally {
+      setResetting(false);
+      setResetAuthOpen(false);
+    }
   };
 
   return (
@@ -83,19 +94,19 @@ export default function Settings() {
           checked={lowStockAlerts}
           onChange={(v) => setPreference('lowStockAlerts', v)}
           label="Low stock alerts"
-          description="Show a banner when items fall below reorder level"
+          description="Show a banner when items fall below reorder level"          
         />
         <ToggleSwitch
           checked={dailySummaryBanner}
           onChange={(v) => setPreference('dailySummaryBanner', v)}
           label="Daily summary"
-          description="Show a quick summary card each time you open the dashboard"
+          description="Show a quick summary card each time you open the dashboard"          
         />
         <ToggleSwitch
           checked={soundOnSave}
           onChange={(v) => setPreference('soundOnSave', v)}
           label="Sound on save"
-          description="Play a subtle sound when a form saves successfully"
+          description="Play a subtle sound when a form saves successfully"          
         />
       </SettingsSection>
 
@@ -111,7 +122,9 @@ export default function Settings() {
         <div className="flex items-center justify-between py-3 border-b border-navy-50 dark:border-white/5">
           <div>
             <p className="text-sm font-semibold text-navy-700 dark:text-white">Recovery codes</p>
-            <p className="text-xs text-navy-400 dark:text-navy-300 mt-0.5">{codesRemaining} unused codes remaining</p>
+            <p className="text-xs text-navy-400 dark:text-navy-300 mt-0.5">
+              {codesRemaining === null ? 'Loading…' : `${codesRemaining} unused codes remaining`}
+            </p>
           </div>
           <Button variant="outline" onClick={() => setRegenerateOpen(true)} className="h-9 px-3 text-xs cursor-pointer">
             <RefreshCw className="w-3.5 h-3.5" /> Regenerate
@@ -140,12 +153,17 @@ export default function Settings() {
         </div>
       </SettingsSection>
 
-      <RegenerateCodesModal open={regenerateOpen} onClose={() => setRegenerateOpen(false)} />
+      <RegenerateCodesModal
+        open={regenerateOpen}
+        onClose={() => setRegenerateOpen(false)}
+        onRegenerated={(count) => setCodesRemaining(count)}
+      />
 
       <ConfirmDialog
         open={resetAuthOpen}
         onClose={() => setResetAuthOpen(false)}
         onConfirm={handleResetAuthenticator}
+        loading={resetting}
         title="Reset your authenticator?"
         description="You'll be logged out and required to scan a new QR code on your next login."
       />

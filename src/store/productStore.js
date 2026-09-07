@@ -1,46 +1,40 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { PRODUCTS as SEED_PRODUCTS } from '../data/mockData';
+import api from '../services/api';
+import { camelize, snakeize } from '../utils/normalize';
 
-// Client-side product store — acts as the database until FastAPI + Postgres
-// exist. Actions are written async (with a simulated delay) so pages already
-// handle loading states correctly; swapping these bodies for real axios
-// calls later won't require touching any page component.
-export const useProductStore = create(
-  persist(
-    (set, get) => ({
-      products: SEED_PRODUCTS,
+export const useProductStore = create((set, get) => ({
+  products: [],
+  loading: false,
 
-      addProduct: async (product) => {
-        await new Promise((r) => setTimeout(r, 500));
-        const newProduct = { ...product, id: `p${Date.now()}` };
-        set((state) => ({ products: [newProduct, ...state.products] }));
-        return newProduct;
-      },
+  fetchProducts: async () => {
+    set({ loading: true });
+    try {
+      const { data } = await api.get('/products');
+      set({ products: camelize(data), loading: false });
+    } catch (err) {
+      set({ loading: false });
+      throw err;
+    }
+  },
 
-      updateProduct: async (id, updates) => {
-        await new Promise((r) => setTimeout(r, 500));
-        set((state) => ({
-          products: state.products.map((p) => (p.id === id ? { ...p, ...updates } : p)),
-        }));
-      },
+  addProduct: async (product) => {
+    const { data } = await api.post('/products', snakeize(product));
+    const newProduct = camelize(data);
+    set((state) => ({ products: [newProduct, ...state.products] }));
+    return newProduct;
+  },
 
-        // Synchronous stock adjustment — used internally by transaction logic
-        // (edits, deletes, bulk deletes) so multiple adjustments made in sequence
-        // don't race against each other the way stacked async calls with delays would
-        adjustQuantity: (id, delta) => {
-        set((state) => ({
-            products: state.products.map((p) => (p.id === id ? { ...p, quantity: Math.max(0, p.quantity + delta) } : p)),
-        }));
-        },
+  updateProduct: async (id, updates) => {
+    const { data } = await api.put(`/products/${id}`, snakeize(updates));
+    const updated = camelize(data);
+    set((state) => ({ products: state.products.map((p) => (p.id === id ? updated : p)) }));
+    return updated;
+  },
 
-      deleteProduct: async (id) => {
-        await new Promise((r) => setTimeout(r, 400));
-        set((state) => ({ products: state.products.filter((p) => p.id !== id) }));
-      },
+  deleteProduct: async (id) => {
+    await api.delete(`/products/${id}`);
+    set((state) => ({ products: state.products.filter((p) => p.id !== id) }));
+  },
 
-      getProductById: (id) => get().products.find((p) => p.id === id),
-    }),
-    { name: 'css-products' }
-  )
-);
+  getProductById: (id) => get().products.find((p) => p.id === id),
+}));

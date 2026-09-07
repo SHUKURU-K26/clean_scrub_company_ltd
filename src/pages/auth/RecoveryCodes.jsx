@@ -10,17 +10,19 @@ export default function RecoveryCodes() {
   const location = useLocation();
   const navigate = useNavigate();
   const pendingUser = useAuthStore((state) => state.pendingUser);
-  const completeLogin = useAuthStore((state) => state.completeLogin);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const completeLogin = useAuthStore((state) => state.completeLogin);
   const [copied, setCopied] = useState(false);
 
   const codes = location.state?.codes;
+  const accessToken = location.state?.accessToken;
+  const user = location.state?.user || pendingUser;
 
   useEffect(() => {
-  if ((!codes || !pendingUser) && !isAuthenticated) navigate('/login', { replace: true });
-}, [codes, pendingUser, isAuthenticated, navigate]);
+    if ((!codes || !accessToken) && !isAuthenticated) navigate('/login', { replace: true });
+  }, [codes, accessToken, isAuthenticated, navigate]);
 
-  if (!codes || !pendingUser) return null;
+  if (!codes || !accessToken) return null;
 
   const handleCopyAll = () => {
     navigator.clipboard.writeText(codes.join('\n'));
@@ -40,7 +42,7 @@ export default function RecoveryCodes() {
   };
 
   const handleContinue = () => {
-    completeLogin(pendingUser);
+    completeLogin(user, accessToken);
     navigate('/', { replace: true });
   };
 
@@ -61,15 +63,15 @@ export default function RecoveryCodes() {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleCopyAll} className="flex-1 cursor-pointer">
+          <Button variant="outline" onClick={handleCopyAll} className="flex-1">
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? 'Copied' : 'Copy all'}
           </Button>
-          <Button variant="outline" onClick={handleDownload} className="flex-1 cursor-pointer">
+          <Button variant="outline" onClick={handleDownload} className="flex-1">
             <Download className="w-4 h-4" /> Download
           </Button>
         </div>
 
-        <Button onClick={handleContinue} className="w-full cursor-pointer">I've saved these codes — Continue</Button>
+        <Button onClick={handleContinue} className="w-full">I've saved these codes — Continue</Button>
       </div>
     </AuthLayout>
   );

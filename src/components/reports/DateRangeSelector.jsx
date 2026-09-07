@@ -11,7 +11,7 @@ export default function DateRangeSelector({ preset, onPresetChange, from, to, on
             key={p.key}
             onClick={() => onPresetChange(p.key)}
             className={cn(
-              'px-3 py-1.5 rounded-full text-xs font-semibold transition-colors',
+              'px-3 py-1.5 cursor-pointer rounded-full text-xs font-semibold transition-colors',
               preset === p.key ? 'bg-green-500 text-white' : 'glass text-navy-500 dark:text-navy-300'
             )}
           >

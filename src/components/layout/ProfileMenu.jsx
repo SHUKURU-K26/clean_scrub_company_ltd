@@ -30,7 +30,7 @@ export default function ProfileMenu() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 pl-1 pr-2 h-9 rounded-full glass"
+        className="flex items-center gap-2 pl-1 pr-2 h-9 rounded-full glass cursor-pointer"
       >
         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-navy-700 to-green-600 flex items-center justify-center text-white font-semibold text-xs">
           {(user?.name || 'U').charAt(0).toUpperCase()}

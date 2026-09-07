@@ -9,7 +9,7 @@ export default function ToggleSwitch({ checked, onChange, label, description }) 
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative w-11 h-6 rounded-full shrink-0 transition-colors duration-200 ${checked ? 'bg-green-500' : 'bg-navy-200 dark:bg-white/10'}`}
+        className={`relative w-11 h-6 rounded-full shrink-0 transition-colors cursor-pointer duration-200 ${checked ? 'bg-green-500' : 'bg-navy-200 dark:bg-white/10'}`}
       >
         <motion.div
           className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm"

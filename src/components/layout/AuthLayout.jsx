@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Sparkles, ShieldCheck, TrendingUp, Boxes } from 'lucide-react';
+import { ShieldCheck, TrendingUp, Boxes } from 'lucide-react';
+import cleanScrubLogo from '../../assets/clean_scrub_logo.png';
 import ThemeToggle from '../ui/ThemeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -23,10 +24,12 @@ export default function AuthLayout({ title, subtitle, children }) {
             transition={{ duration: 0.5 }}
             className="flex items-center gap-3"
           >
-            <div className="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
-              <Sparkles className="w-5 h-5 text-white" strokeWidth={2.5} />
+            <div className="w-11 h-11 rounded-full flex items-center justify-center">
+              <div className="w-full h-full rounded-full border-2 border-green-600 p-0.5 bg-white/15 overflow-hidden flex items-center justify-center">
+                <img src={cleanScrubLogo} alt="Clean Scrub" className="w-full h-full object-cover rounded-full" />
+              </div>
             </div>
-            <span className="font-display font-bold text-white text-lg">Clean & Scrub</span>
+            <span className="font-display font-bold text-white text-lg">Clean & Scrub Ltd</span>
           </motion.div>
 
           <motion.div
@@ -77,9 +80,11 @@ export default function AuthLayout({ title, subtitle, children }) {
             transition={{ duration: 0.4 }}
             className="w-full max-w-sm"
           >
-            <div className="mb-8 lg:hidden flex items-center gap-2.5 justify-center">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-navy-700 to-green-600 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" strokeWidth={2.5} />
+            <div className="mb-8 lg:hidden flex flex-col items-center justify-center">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mb-2">
+                <div className="w-full h-full rounded-full border-2 border-green-600 p-0.5 bg-white/80 overflow-hidden">
+                  <img src={cleanScrubLogo} alt="Clean Scrub" className="w-full h-full object-cover rounded-full" />
+                </div>
               </div>
               <span className="font-display font-bold text-navy-800 dark:text-white">Clean & Scrub</span>
             </div>

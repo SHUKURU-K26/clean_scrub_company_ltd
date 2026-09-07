@@ -35,9 +35,9 @@ export default function CustomerFormModal({ open, onClose, customer }) {
         await addCustomer(data);
         toast.success('Customer added');
       }
-      onClose();
-    } catch {
-      toast.error('Something went wrong — please try again');
+           onClose();
+    } catch (err) {
+      toast.error(err.message || 'Something went wrong — please try again');
     }
   };
 

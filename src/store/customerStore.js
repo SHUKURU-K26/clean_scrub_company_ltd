@@ -1,38 +1,45 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { CUSTOMERS as SEED_CUSTOMERS } from '../data/mockData';
+import api from '../services/api';
+import { camelize, snakeize } from '../utils/normalize';
 
-export const useCustomerStore = create(
-  persist(
-    (set, get) => ({
-      customers: SEED_CUSTOMERS,
+export const useCustomerStore = create((set, get) => ({
+  customers: [],
+  loading: false,
 
-      addCustomer: async (customer) => {
-        await new Promise((r) => setTimeout(r, 300));
-        const newCustomer = { ...customer, id: `c${Date.now()}` };
-        set((state) => ({ customers: [newCustomer, ...state.customers] }));
-        return newCustomer;
-      },
+  fetchCustomers: async () => {
+    set({ loading: true });
+    try {
+      const { data } = await api.get('/customers');
+      set({ customers: camelize(data), loading: false });
+    } catch (err) {
+      set({ loading: false });
+      throw err;
+    }
+  },
 
-      updateCustomer: async (id, updates) => {
-        await new Promise((r) => setTimeout(r, 400));
-        set((state) => ({
-          customers: state.customers.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-        }));
-      },
+  addCustomer: async (customer) => {
+    const { data } = await api.post('/customers', snakeize(customer));
+    const newCustomer = camelize(data);
+    set((state) => ({ customers: [newCustomer, ...state.customers] }));
+    return newCustomer;
+  },
 
-      deleteCustomer: async (id) => {
-        await new Promise((r) => setTimeout(r, 400));
-        set((state) => ({ customers: state.customers.filter((c) => c.id !== id) }));
-      },
+  updateCustomer: async (id, updates) => {
+    const { data } = await api.put(`/customers/${id}`, snakeize(updates));
+    const updated = camelize(data);
+    set((state) => ({ customers: state.customers.map((c) => (c.id === id ? updated : c)) }));
+    return updated;
+  },
 
-      deleteMultipleCustomers: async (ids) => {
-        await new Promise((r) => setTimeout(r, 500));
-        set((state) => ({ customers: state.customers.filter((c) => !ids.includes(c.id)) }));
-     },
+  deleteCustomer: async (id) => {
+    await api.delete(`/customers/${id}`);
+    set((state) => ({ customers: state.customers.filter((c) => c.id !== id) }));
+  },
 
-      getCustomerById: (id) => get().customers.find((c) => c.id === id),
-    }),
-    { name: 'css-customers' }
-  )
-);
+  deleteMultipleCustomers: async (ids) => {
+    await api.post('/customers/bulk-delete', { ids });
+    set((state) => ({ customers: state.customers.filter((c) => !ids.includes(c.id)) }));
+  },
+
+  getCustomerById: (id) => get().customers.find((c) => c.id === id),
+}));

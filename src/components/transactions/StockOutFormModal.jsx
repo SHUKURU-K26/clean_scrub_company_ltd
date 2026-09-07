@@ -23,7 +23,6 @@ export default function StockOutFormModal({ open, onClose, transaction }) {
   const products = useProductStore((state) => state.products);
   const getProductById = useProductStore((state) => state.getProductById);
   const customers = useCustomerStore((state) => state.customers);
-  const addCustomer = useCustomerStore((state) => state.addCustomer);
   const addStockOut = useTransactionStore((state) => state.addStockOut);
   const updateStockOut = useTransactionStore((state) => state.updateStockOut);
 
@@ -70,8 +69,6 @@ export default function StockOutFormModal({ open, onClose, transaction }) {
   }, [customerMode, setValue]);
 
   const onSubmit = async (data) => {
-    // If editing the same product, the original quantity is still "reserved"
-    // against it, so it counts back toward what's available for this edit
     const available = isEdit && data.productId === transaction.productId
       ? (selectedProduct?.quantity || 0) + transaction.quantity
       : (selectedProduct?.quantity || 0);
@@ -81,19 +78,16 @@ export default function StockOutFormModal({ open, onClose, transaction }) {
       return;
     }
 
-    try {
-      let customer;
-      if (data.customerMode === 'existing') {
-        customer = customers.find((c) => c.id === data.customerId);
-      } else {
-        customer = await addCustomer({ name: data.customerName, phone: data.customerPhone, type: data.customerType });
-      }
+    const customerPayload = data.customerMode === 'existing'
+      ? { customerId: data.customerId }
+      : { customerName: data.customerName, customerPhone: data.customerPhone, customerType: data.customerType };
 
+    try {
       if (isEdit) {
-        await updateStockOut(transaction.id, { productId: data.productId, quantity: data.quantity, customer, date: data.date });
+        await updateStockOut(transaction.id, { productId: data.productId, quantity: data.quantity, date: data.date, ...customerPayload });
         toast.success('Entry updated');
       } else {
-        await addStockOut({ productId: data.productId, quantity: data.quantity, customer, date: data.date });
+        await addStockOut({ productId: data.productId, quantity: data.quantity, date: data.date, ...customerPayload });
         toast.success('Stock out recorded');
       }
       onClose();
@@ -125,14 +119,14 @@ export default function StockOutFormModal({ open, onClose, transaction }) {
             <button
               type="button"
               onClick={() => setCustomerMode('existing')}
-              className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors', customerMode === 'existing' ? 'bg-green-500 text-white' : 'text-navy-400 dark:text-navy-300')}
+              className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors', customerMode === 'existing' ? 'bg-green-500 text-white' : 'text-navy-400 dark:text-navy-300')}
             >
               <Users className="w-3.5 h-3.5" /> Existing
             </button>
             <button
               type="button"
               onClick={() => setCustomerMode('new')}
-              className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors', customerMode === 'new' ? 'bg-green-500 text-white' : 'text-navy-400 dark:text-navy-300')}
+              className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors', customerMode === 'new' ? 'bg-green-500 text-white' : 'text-navy-400 dark:text-navy-300')}
             >
               <UserPlus className="w-3.5 h-3.5" /> New customer
             </button>

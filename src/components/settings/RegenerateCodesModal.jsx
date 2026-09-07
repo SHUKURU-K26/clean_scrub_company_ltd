@@ -3,25 +3,25 @@ import { Copy, Check, Download, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
-import { generateRecoveryCodes } from '../../services/otpService';
-import { useOtpStore } from '../../store/otpStore';
-import { useAuthStore } from '../../store/authStore';
+import { regenerateRecoveryCodesRequest } from '../../services/profileService';
 
-export default function RegenerateCodesModal({ open, onClose }) {
-  const user = useAuthStore((state) => state.user);
-  const regenerateRecoveryCodes = useOtpStore((state) => state.regenerateRecoveryCodes);
+export default function RegenerateCodesModal({ open, onClose, onRegenerated }) {
   const [codes, setCodes] = useState(null);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 500));
-    const newCodes = generateRecoveryCodes(8);
-    regenerateRecoveryCodes(user.email, newCodes);
-    setCodes(newCodes);
-    setLoading(false);
-    toast.success('New recovery codes generated');
+    try {
+      const res = await regenerateRecoveryCodesRequest();
+      setCodes(res.recoveryCodes);
+      onRegenerated?.(res.recoveryCodes.length);
+      toast.success('New recovery codes generated');
+    } catch (err) {
+      toast.error(err.message || 'Failed to regenerate codes');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCopyAll = () => {
@@ -56,8 +56,8 @@ export default function RegenerateCodesModal({ open, onClose }) {
             Your old recovery codes will stop working immediately. Make sure you can save the new ones before continuing.
           </p>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleClose} className="flex-1 cursor-pointer">Cancel</Button>
-            <Button onClick={handleGenerate} loading={loading} className="flex-1 cursor-pointer">Generate New Codes</Button>
+            <Button variant="outline" onClick={handleClose} className="flex-1">Cancel</Button>
+            <Button onClick={handleGenerate} loading={loading} className="flex-1">Generate New Codes</Button>
           </div>
         </div>
       ) : (
@@ -68,14 +68,14 @@ export default function RegenerateCodesModal({ open, onClose }) {
             ))}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleCopyAll} className="flex-1 cursor-pointer">
+            <Button variant="outline" onClick={handleCopyAll} className="flex-1">
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? 'Copied' : 'Copy all'}
             </Button>
-            <Button variant="outline" onClick={handleDownload} className="flex-1 cursor-pointer">
+            <Button variant="outline" onClick={handleDownload} className="flex-1">
               <Download className="w-4 h-4" /> Download
             </Button>
           </div>
-          <Button onClick={handleClose} className="w-full cursor-pointer">Done</Button>
+          <Button onClick={handleClose} className="w-full">Done</Button>
         </div>
       )}
     </Modal>

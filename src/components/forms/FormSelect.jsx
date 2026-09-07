@@ -17,7 +17,7 @@ const FormSelect = forwardRef(function FormSelect(
         <select
           ref={ref}
           className={cn(
-            'w-full h-11 rounded-xl bg-white/60 dark:bg-white/5 border text-sm text-navy-800 dark:text-white appearance-none outline-none px-3.5 pr-9 transition-all duration-200',
+            'w-full h-11 cursor-pointer rounded-xl bg-white/60 dark:bg-white/5 border text-sm text-navy-800 dark:text-white appearance-none outline-none px-3.5 pr-9 transition-all duration-200',
             error
               ? 'border-red-400 focus:ring-2 focus:ring-red-200'
               : 'border-navy-100 dark:border-white/10 focus:border-green-400 focus:ring-2 focus:ring-green-100 dark:focus:ring-green-500/20',

@@ -18,7 +18,7 @@ export default function Signup() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const setPendingUser = useAuthStore((state) => state.setPendingUser);
+  const setPendingAuth = useAuthStore((state) => state.setPendingAuth);
 
   const {
     register,
@@ -29,11 +29,11 @@ export default function Signup() {
 
   const password = watch('password');
 
-  const onSubmit = async (data) => {
+    const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const user = await signupRequest(data);
-      setPendingUser(user);
+      const res = await signupRequest(data);
+      setPendingAuth(res);
       toast.success('Account created — secure it with an authenticator app');
       navigate('/verify-otp');
     } catch (err) {
