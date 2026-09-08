@@ -1,7 +1,7 @@
 {
   "name": "ui",
   "private": true,
-  "version": "0.0.0",  
+  "version": "0.0.0",
   "packageManager": "pnpm@9.15.9",
   "type": "module",
   "scripts": {
@@ -24,8 +24,7 @@
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.37.0",
-    "otpauth": "^9.5.1",
-    "pnpm": "^11.24.0",
+    "otpauth": "^9.5.1",    
     "qrcode.react": "^4.2.0",
     "react": "^19.2.8",
     "react-day-picker": "^10.0.1",
