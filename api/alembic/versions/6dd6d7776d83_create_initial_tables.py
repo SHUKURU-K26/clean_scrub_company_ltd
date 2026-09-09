@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -19,22 +20,97 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Rename existing unit_price to cost_price — preserves all current data
-    op.alter_column('products', 'unit_price', new_column_name='cost_price')
+    op.create_table(
+        'users',
+        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('name', sa.String(), nullable=False),
+        sa.Column('email', sa.String(), nullable=False),
+        sa.Column('phone', sa.String(), nullable=True),
+        sa.Column('hashed_password', sa.String(), nullable=False),
+        sa.Column('role', sa.String(), nullable=False),
+        sa.Column('avatar_url', sa.String(), nullable=True),
+        sa.Column('is_active', sa.Boolean(), nullable=True),
+        sa.Column('created_at', sa.DateTime(), nullable=True),
+        sa.Column('updated_at', sa.DateTime(), nullable=True),
+        sa.PrimaryKeyConstraint('id'),
+    )
+    op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
 
-    # Add selling_price, backfill from cost_price so nothing is left blank,
-    # then require it going forward
-    op.add_column('products', sa.Column('selling_price', sa.Numeric(12, 2), nullable=True))
-    op.execute('UPDATE products SET selling_price = cost_price')
-    op.alter_column('products', 'selling_price', nullable=False)
+    op.create_table(
+        'products',
+        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('name', sa.String(), nullable=False),
+        sa.Column('sku', sa.String(), nullable=False),
+        sa.Column('category', sa.String(), nullable=False),
+        sa.Column('unit', sa.String(), nullable=False),
+        sa.Column('quantity', sa.Integer(), nullable=False),
+        sa.Column('reorder_level', sa.Integer(), nullable=False),
+        sa.Column('unit_price', sa.Numeric(precision=12, scale=2), nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=True),
+        sa.Column('updated_at', sa.DateTime(), nullable=True),
+        sa.PrimaryKeyConstraint('id'),
+    )
+    op.create_index(op.f('ix_products_sku'), 'products', ['sku'], unique=True)
 
-    # Snapshot of cost at the moment of a sale — only populated for
-    # stock-out rows, used to calculate profit later without it drifting
-    # if the product's cost price changes afterward
-    op.add_column('transactions', sa.Column('cost_price_at_sale', sa.Numeric(12, 2), nullable=True))
+    op.create_table(
+        'customers',
+        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('name', sa.String(), nullable=False),
+        sa.Column('phone', sa.String(), nullable=False),
+        sa.Column('type', sa.String(), nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=True),
+        sa.PrimaryKeyConstraint('id'),
+    )
+
+    op.create_table(
+        'otp_secrets',
+        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('secret', sa.String(), nullable=False),
+        sa.Column('is_active', sa.Boolean(), nullable=True),
+        sa.Column('created_at', sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id']),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('user_id'),
+    )
+
+    op.create_table(
+        'recovery_codes',
+        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('code_hash', sa.String(), nullable=False),
+        sa.Column('used', sa.Boolean(), nullable=True),
+        sa.Column('created_at', sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id']),
+        sa.PrimaryKeyConstraint('id'),
+    )
+
+    op.create_table(
+        'transactions',
+        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('type', sa.String(), nullable=False),
+        sa.Column('product_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('quantity', sa.Integer(), nullable=False),
+        sa.Column('unit_price', sa.Numeric(precision=12, scale=2), nullable=False),
+        sa.Column('supplier', sa.String(), nullable=True),
+        sa.Column('customer_id', postgresql.UUID(as_uuid=True), nullable=True),
+        sa.Column('customer_name', sa.String(), nullable=True),
+        sa.Column('customer_phone', sa.String(), nullable=True),
+        sa.Column('customer_type', sa.String(), nullable=True),
+        sa.Column('date', sa.DateTime(), nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(['customer_id'], ['customers.id']),
+        sa.ForeignKeyConstraint(['product_id'], ['products.id']),
+        sa.PrimaryKeyConstraint('id'),
+    )
 
 
 def downgrade() -> None:
-    op.drop_column('transactions', 'cost_price_at_sale')
-    op.drop_column('products', 'selling_price')
-    op.alter_column('products', 'cost_price', new_column_name='unit_price')
+    op.drop_table('transactions')
+    op.drop_table('recovery_codes')
+    op.drop_table('otp_secrets')
+    op.drop_table('customers')
+    op.drop_index(op.f('ix_products_sku'), table_name='products')
+    op.drop_table('products')
+    op.drop_index(op.f('ix_users_email'), table_name='users')
+    op.drop_table('users')
